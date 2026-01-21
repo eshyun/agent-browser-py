@@ -38,8 +38,14 @@ uv add "agent-browser-py @ git+https://github.com/eshyun/agent-browser-py.git"
 pip install "git+https://github.com/eshyun/agent-browser-py.git"
 
 # Install specific branch or tag
+```bash
+# uv
 uv add "agent-browser-py @ git+https://github.com/eshyun/agent-browser-py.git@main"
+uv add git+https://github.com/eshyun/agent-browser-py.git
+
+# pip
 pip install "git+https://github.com/eshyun/agent-browser-py.git@v0.3.0"
+pip install git+https://github.com/eshyun/agent-browser-py.git
 ```
 
 ### Install from PyPI (Coming Soon)
