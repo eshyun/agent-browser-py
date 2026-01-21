@@ -1,10 +1,11 @@
 from agent_browser import AgentBrowser
+import time
 
 
 def basic_example():
     browser = AgentBrowser()
 
-    browser.open("https://example.com")
+    browser.open("https://example.org")
 
     snapshot = browser.snapshot(interactive_only=True)
     print("Snapshot:", snapshot)
@@ -21,8 +22,8 @@ def basic_example():
 
 
 def context_manager_example():
-    with AgentBrowser(headed=True) as browser:
-        browser.open("https://example.com")
+    with AgentBrowser() as browser:
+        browser.open("https://example.org")
 
         snapshot = browser.snapshot(interactive_only=True, compact=True)
 
@@ -44,7 +45,7 @@ def session_example():
 def refs_workflow():
     browser = AgentBrowser()
 
-    browser.open("https://example.com")
+    browser.open("https://example.org")
 
     snapshot = browser.snapshot(interactive_only=True)
     print("Available refs:", snapshot.get("refs", {}).keys())
@@ -57,7 +58,7 @@ def refs_workflow():
 
 def get_methods_example():
     with AgentBrowser() as browser:
-        browser.open("https://example.com")
+        browser.open("https://example.org")
 
         href = browser.get_attr("a", "href")
         print(f"Link href: {href}")
@@ -73,42 +74,41 @@ def get_methods_example():
 
 def advanced_get_example():
     with AgentBrowser() as browser:
-        browser.open("https://github.com")
+        browser.open("https://example.org")
 
-        placeholder = browser.get_attr("input[name='q']", "placeholder")
-        print(f"Search input placeholder: {placeholder}")
+        # Get various attributes and counts
+        link_href = browser.get_attr("a", "href")
+        print(f"First link href: {link_href}")
 
-        button_count = browser.get_count("button")
-        print(f"Total buttons on page: {button_count}")
+        all_paragraphs = browser.get_count("p")
+        print(f"Total paragraphs: {all_paragraphs}")
 
-        logo_box = browser.get_box(".octicon-mark-github")
-        if logo_box:
-            print(f"GitHub logo position: x={logo_box.get('x')}, y={logo_box.get('y')}")
+        page_html = browser.get_html("body")
+        print(f"Body HTML length: {len(page_html)} characters")
 
-        all_links = browser.get_count("a")
-        visible_links = browser.get_count("a:visible")
-        print(f"Links: {all_links} total, {visible_links} visible")
+        # Check element states
+        link_visible = browser.is_visible("a")
+        print(f"First link is visible: {link_visible}")
+
+        link_enabled = browser.is_enabled("a")
+        print(f"First link is enabled: {link_enabled}")
 
 
 def form_interaction_example():
     with AgentBrowser() as browser:
-        browser.open("https://example.com")
+        browser.open("https://example.org")
 
-        browser.fill("input#email", "test@example.com")
+        print("Note: example.org has no form elements")
+        print("Demonstrating element state checks instead:")
 
-        email_value = browser.get_value("input#email")
-        print(f"Filled email: {email_value}")
+        link_visible = browser.is_visible("a")
+        print(f"Link is visible: {link_visible}")
 
-        input_type = browser.get_attr("input#email", "type")
-        print(f"Input type: {input_type}")
+        link_enabled = browser.is_enabled("a")
+        print(f"Link is enabled: {link_enabled}")
 
-        input_name = browser.get_attr("input#email", "name")
-        print(f"Input name: {input_name}")
-
-        input_box = browser.get_box("input#email")
-        print(
-            f"Input dimensions: {input_box.get('width')}px × {input_box.get('height')}px"
-        )
+        link_count = browser.get_count("a")
+        print(f"Number of links: {link_count}")
 
 
 def session_management_example():
@@ -117,7 +117,7 @@ def session_management_example():
     print(f"Initial sessions: {AgentBrowser.list_sessions()}")
 
     browser = AgentBrowser()
-    browser.open("https://example.com")
+    browser.open("https://example.org")
 
     print(f"After open: {AgentBrowser.list_sessions()}")
     print(f"Current session: {browser.get_current_session()}")
@@ -131,7 +131,7 @@ def close_all_sessions_example():
     print("\n=== Close All Sessions ===")
 
     browser1 = AgentBrowser(session="test-1")
-    browser1.open("https://example.com")
+    browser1.open("https://example.org")
 
     browser2 = AgentBrowser(session="test-2")
     browser2.open("https://github.com")
@@ -150,7 +150,7 @@ def shutdown_example():
     browser1.open("https://github.com")
 
     browser2 = AgentBrowser(session="personal")
-    browser2.open("https://example.com")
+    browser2.open("https://example.org")
 
     print(f"Active: {AgentBrowser.list_sessions()}")
 
@@ -164,7 +164,7 @@ def auto_shutdown_example():
     AgentBrowser.register_shutdown_hook(verbose=True)
 
     browser = AgentBrowser()
-    browser.open("https://example.com")
+    browser.open("https://example.org")
 
     print(f"Active: {AgentBrowser.list_sessions()}")
     print("Program will auto-cleanup on exit...")
@@ -173,27 +173,35 @@ def auto_shutdown_example():
 if __name__ == "__main__":
     print("Running basic example...")
     basic_example()
+    time.sleep(1)
 
     print("\nRunning context manager example...")
     context_manager_example()
+    time.sleep(1)
 
     print("\nRunning get methods example...")
     get_methods_example()
+    time.sleep(1)
 
     print("\nRunning advanced get example...")
     advanced_get_example()
+    time.sleep(1)
 
     print("\nRunning form interaction example...")
     form_interaction_example()
+    time.sleep(1)
 
     print("\nRunning session management example...")
     session_management_example()
+    time.sleep(1)
 
     print("\nRunning close all sessions example...")
     close_all_sessions_example()
+    time.sleep(1)
 
     print("\nRunning shutdown example...")
     shutdown_example()
+    time.sleep(1)
 
     print("\nRunning auto-shutdown example...")
     auto_shutdown_example()

@@ -4,23 +4,23 @@ from agent_browser import AsyncAgentBrowser
 
 async def basic_example():
     print("=== Basic Async Example ===")
-    browser = AsyncAgentBrowser()
+    browser = AsyncAgentBrowser(session="async-basic")
+    try:
+        await browser.open("https://example.org")
 
-    await browser.open("https://example.com")
+        title = await browser.get_title()
+        print(f"Page title: {title}")
 
-    title = await browser.get_title()
-    print(f"Page title: {title}")
-
-    url = await browser.get_url()
-    print(f"Current URL: {url}")
-
-    await browser.close()
+        url = await browser.get_url()
+        print(f"Current URL: {url}")
+    finally:
+        await browser.close()
 
 
 async def context_manager_example():
     print("\n=== Context Manager Example ===")
-    async with AsyncAgentBrowser() as browser:
-        await browser.open("https://example.com")
+    async with AsyncAgentBrowser(session="async-ctx") as browser:
+        await browser.open("https://example.org")
 
         text = await browser.get_text("h1")
         print(f"H1 text: {text}")
@@ -31,18 +31,18 @@ async def context_manager_example():
 
 async def batch_execution_example():
     print("\n=== Batch Execution Example ===")
-    browser = AsyncAgentBrowser()
+    browser = AsyncAgentBrowser(session="async-batch")
+    try:
+        async with browser.batch() as b:
+            b.open("https://example.org")
+            b.wait("h1")
+            b.get_title()
+            b.get_url()
+            b.get_text("h1")
 
-    async with browser.batch() as b:
-        b.open("https://example.com")
-        b.wait("h1")
-        b.get_title()
-        b.get_url()
-        b.get_text("h1")
-
-    print(f"Batch results: {b.results}")
-
-    await browser.close()
+        print(f"Batch results: {b.results}")
+    finally:
+        await browser.close()
 
 
 async def parallel_browsers_example():
@@ -52,7 +52,7 @@ async def parallel_browsers_example():
     browser2 = AsyncAgentBrowser(session="session-2")
 
     results = await asyncio.gather(
-        browser1.open("https://example.com"),
+        browser1.open("https://example.org"),
         browser2.open("https://github.com"),
     )
 
@@ -72,21 +72,17 @@ async def parallel_browsers_example():
 
 async def form_interaction_example():
     print("\n=== Form Interaction Example ===")
-    async with AsyncAgentBrowser() as browser:
-        await browser.open("https://example.com")
+    async with AsyncAgentBrowser(session="async-form") as browser:
+        await browser.open("https://example.org")
 
-        await browser.fill("input[name='email']", "test@example.com")
-        await browser.fill("input[name='password']", "password123")
-        await browser.click("button[type='submit']")
-
-        await browser.wait(url="**/dashboard")
-        print("Form submitted and redirected!")
+        print("Note: example.org has no form, skipping form interaction")
+        print("Page loaded successfully")
 
 
 async def snapshot_and_refs_example():
     print("\n=== Snapshot and Refs Example ===")
-    async with AsyncAgentBrowser() as browser:
-        await browser.open("https://example.com")
+    async with AsyncAgentBrowser(session="async-snapshot") as browser:
+        await browser.open("https://example.org")
 
         snapshot = await browser.snapshot(interactive_only=True)
 
@@ -110,8 +106,8 @@ async def session_management_example():
     browser1 = AsyncAgentBrowser(session="test-1")
     browser2 = AsyncAgentBrowser(session="test-2")
 
-    await browser1.open("https://example.com")
-    await browser2.open("https://example.com")
+    await browser1.open("https://example.org")
+    await browser2.open("https://example.org")
 
     sessions_active = await AsyncAgentBrowser.list_sessions()
     print(f"Active sessions: {sessions_active}")
@@ -126,10 +122,10 @@ async def session_management_example():
 async def shutdown_example():
     print("\n=== Shutdown Example ===")
 
-    browser1 = AsyncAgentBrowser(session="work")
-    browser2 = AsyncAgentBrowser(session="personal")
+    browser1 = AsyncAgentBrowser(session="async-work")
+    browser2 = AsyncAgentBrowser(session="async-personal")
 
-    await browser1.open("https://example.com")
+    await browser1.open("https://example.org")
     await browser2.open("https://github.com")
 
     print("Shutting down all sessions...")
@@ -141,9 +137,16 @@ async def shutdown_example():
 async def main():
     try:
         await basic_example()
+        await asyncio.sleep(1)
+
         await context_manager_example()
+        await asyncio.sleep(1)
+
         await batch_execution_example()
+        await asyncio.sleep(1)
+
         await parallel_browsers_example()
+        await asyncio.sleep(1)
 
         print("\n=== All examples completed! ===")
 
