@@ -26,8 +26,26 @@ agent-browser install
 
 ## Installation
 
+### Install from Git (Recommended)
+
+Since this package is not yet published to PyPI, install directly from GitHub:
+
 ```bash
-uv add agent-browser-py  # Not published yet
+# Using uv (recommended)
+uv add "agent-browser-py @ git+https://github.com/eshyun/agent-browser-py.git"
+
+# Using pip
+pip install "git+https://github.com/eshyun/agent-browser-py.git"
+
+# Install specific branch or tag
+uv add "agent-browser-py @ git+https://github.com/eshyun/agent-browser-py.git@main"
+pip install "git+https://github.com/eshyun/agent-browser-py.git@v0.3.0"
+```
+
+### Install from PyPI (Coming Soon)
+
+```bash
+uv add agent-browser-py
 # or
 pip install agent-browser-py
 ```
