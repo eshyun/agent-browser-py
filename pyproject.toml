@@ -1,5 +1,5 @@
 [project]
-name = "agent-browser"
+name = "agent-browser-py"
 version = "0.3.0"
 description = "Python wrapper for agent-browser CLI - Browser automation for AI agents"
 readme = "README.md"

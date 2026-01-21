@@ -27,9 +27,9 @@ agent-browser install
 ## Installation
 
 ```bash
-uv add agent-browser-wrapper  # Not published yet
+uv add agent-browser-py  # Not published yet
 # or
-pip install agent-browser-wrapper
+pip install agent-browser-py
 ```
 
 ## Quick Start
