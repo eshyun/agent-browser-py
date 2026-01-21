@@ -5,7 +5,7 @@ requires-python = ">=3.11"
 [[package]]
 name = "agent-browser"
 version = "0.3.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "benedict" },
 ]

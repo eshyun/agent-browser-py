@@ -1,5 +1,5 @@
 import asyncio
-from async_agent_browser import AsyncAgentBrowser
+from agent_browser import AsyncAgentBrowser
 
 
 async def basic_example():

@@ -10,6 +10,7 @@ import tempfile
 import os
 from typing import Optional, Dict, Any, List, Union
 from pathlib import Path
+from benedict import BeneDict
 
 
 class AgentBrowserError(Exception):

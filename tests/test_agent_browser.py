@@ -1,4 +1,9 @@
 import pytest
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
 from agent_browser import AgentBrowser, AgentBrowserError
 
 
@@ -168,6 +173,7 @@ class TestExceptionHandling:
 
 class TestExampleUsage:
     def test_example_file_imports(self):
+        sys.path.insert(0, str(Path(__file__).parent.parent / "examples"))
         import example_usage
 
         assert hasattr(example_usage, "basic_example")
@@ -235,19 +241,19 @@ class TestBatchExecution:
         browser = AgentBrowser()
         assert hasattr(browser, "batch")
         assert callable(browser.batch)
-    
+
     def test_execute_batch_method_exists(self):
         browser = AgentBrowser()
         assert hasattr(browser, "execute_batch")
         assert callable(browser.execute_batch)
-    
+
     def test_batch_context_manager(self):
         browser = AgentBrowser()
         batch_ctx = browser.batch()
         assert batch_ctx is not None
         assert hasattr(batch_ctx, "__enter__")
         assert hasattr(batch_ctx, "__exit__")
-    
+
     def test_batch_context_has_methods(self):
         browser = AgentBrowser()
         with browser.batch() as b:
@@ -256,7 +262,7 @@ class TestBatchExecution:
             assert hasattr(b, "fill")
             assert hasattr(b, "get_title")
             assert hasattr(b, "screenshot")
-    
+
     def test_batch_context_chaining(self):
         browser = AgentBrowser()
         with browser.batch() as b:
@@ -264,7 +270,7 @@ class TestBatchExecution:
             assert result is b
             result = b.get_title()
             assert result is b
-    
+
     def test_execute_batch_with_empty_list(self):
         browser = AgentBrowser()
         results = browser.execute_batch([])

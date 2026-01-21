@@ -114,7 +114,7 @@ print(b.results)
 - ❌ Need to check results between commands
 - ❌ Conditional logic based on previous results
 
-See [example_batch.py](./example_batch.py) for more examples.
+See [example_batch.py](./examples/example_batch.py) for more examples.
 
 ### Async API
 
@@ -122,7 +122,7 @@ All sync APIs have async equivalents using `AsyncAgentBrowser`:
 
 ```python
 import asyncio
-from async_agent_browser import AsyncAgentBrowser
+from agent_browser import AsyncAgentBrowser
 
 async def main():
     async with AsyncAgentBrowser() as browser:
@@ -172,7 +172,7 @@ async def parallel_example():
     )
 ```
 
-See [example_async_usage.py](./example_async_usage.py) for more examples.
+See [example_async_usage.py](./examples/example_async_usage.py) for more examples.
 
 ## API Reference
 
@@ -431,9 +431,9 @@ finally:
 
 ## Examples
 
-- [example_usage.py](./example_usage.py) - Sync API examples
-- [example_batch.py](./example_batch.py) - Batch execution examples
-- [example_async_usage.py](./example_async_usage.py) - Async API examples
+- [example_usage.py](./examples/example_usage.py) - Sync API examples
+- [example_batch.py](./examples/example_batch.py) - Batch execution examples
+- [example_async_usage.py](./examples/example_async_usage.py) - Async API examples
 
 ## Requirements
 

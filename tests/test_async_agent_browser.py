@@ -4,7 +4,13 @@ Tests for AsyncAgentBrowser
 
 import pytest
 import asyncio
-from async_agent_browser import AsyncAgentBrowser, AsyncBatchContext, AgentBrowserError
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
+from agent_browser import AsyncAgentBrowser, AgentBrowserError
+from agent_browser.async_agent_browser import AsyncBatchContext
 
 
 class TestAsyncAgentBrowserInit:
