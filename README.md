@@ -7,12 +7,13 @@ Python wrapper for [agent-browser](https://github.com/vercel-labs/agent-browser)
 - 🚀 Easy-to-use Python API for agent-browser
 - 🎯 Supports refs-based element selection (optimal for AI)
 - 📦 All agent-browser commands available
-- 🔄 Context manager support
+- 🔄 Context manager support (sync & async)
 - 🌐 Multi-session support
 - 🎭 Headed/headless modes
 - 🔍 JSON output parsing
 - ⚡ Subprocess-based communication
 - 🔥 **Batch execution for performance** (NEW!)
+- ⚡ **Async API support** (NEW!)
 
 ## Prerequisites
 
@@ -33,7 +34,9 @@ pip install agent-browser-wrapper
 
 ## Quick Start
 
-### Basic Usage
+### Sync API
+
+#### Basic Usage
 
 ```python
 from agent_browser import AgentBrowser
@@ -112,6 +115,64 @@ print(b.results)
 - ❌ Conditional logic based on previous results
 
 See [example_batch.py](./example_batch.py) for more examples.
+
+### Async API
+
+All sync APIs have async equivalents using `AsyncAgentBrowser`:
+
+```python
+import asyncio
+from async_agent_browser import AsyncAgentBrowser
+
+async def main():
+    async with AsyncAgentBrowser() as browser:
+        await browser.open("https://example.com")
+        
+        title = await browser.get_title()
+        print(f"Title: {title}")
+        
+        snapshot = await browser.snapshot(interactive_only=True)
+        print(f"Found {len(snapshot.get('refs', {}))} interactive elements")
+
+asyncio.run(main())
+```
+
+#### Async Batch Execution
+
+```python
+async def batch_example():
+    browser = AsyncAgentBrowser()
+    
+    async with browser.batch() as b:
+        b.open("https://example.com")
+        b.wait("h1")
+        b.get_title()
+        b.get_url()
+        b.get_text("h1")
+    
+    print(f"Results: {b.results}")
+    await browser.close()
+```
+
+#### Parallel Browser Operations
+
+```python
+async def parallel_example():
+    browser1 = AsyncAgentBrowser(session="session-1")
+    browser2 = AsyncAgentBrowser(session="session-2")
+    
+    titles = await asyncio.gather(
+        browser1.open("https://example.com"),
+        browser2.open("https://github.com"),
+    )
+    
+    await asyncio.gather(
+        browser1.close(),
+        browser2.close(),
+    )
+```
+
+See [example_async_usage.py](./example_async_usage.py) for more examples.
 
 ## API Reference
 
@@ -370,17 +431,19 @@ finally:
 
 ## Examples
 
-See [example_usage.py](./example_usage.py) for more examples.
+- [example_usage.py](./example_usage.py) - Sync API examples
+- [example_batch.py](./example_batch.py) - Batch execution examples
+- [example_async_usage.py](./example_async_usage.py) - Async API examples
 
 ## Requirements
 
-- Python >= 3.13
+- Python >= 3.11
 - agent-browser CLI (installed globally via npm)
 - Chromium browser (installed via `agent-browser install`)
 
 ## License
 
-Apache-2.0
+MIT
 
 ## Related
 

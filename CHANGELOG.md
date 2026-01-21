@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-01-21
+
+### Added
+- **Async API Support** - Complete async/await implementation
+  - `AsyncAgentBrowser` - Async version of AgentBrowser
+  - `AsyncBatchContext` - Async batch execution support
+  - All sync methods have async equivalents (await browser.open(), etc.)
+  - Async context manager support (`async with AsyncAgentBrowser()`)
+  - Parallel browser operations with asyncio.gather()
+  - Uses asyncio.create_subprocess_exec for non-blocking operations
+- `example_async_usage.py` - Comprehensive async examples
+- 24 passing async API tests in `test_async_agent_browser.py`
+- pytest-asyncio dev dependency
+
+### Changed
+- Updated README with async API documentation and examples
+- Updated Python requirement from >=3.10 to >=3.11 (for ipython compatibility)
+- License updated to MIT in README
+
+### Performance
+- Async API enables true parallel browser operations
+- Multiple browsers can run concurrently with asyncio.gather()
+- Non-blocking subprocess calls improve throughput
+
 ## [0.2.0] - 2026-01-21
 
 ### Added
