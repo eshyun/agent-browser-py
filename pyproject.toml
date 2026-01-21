@@ -1,0 +1,18 @@
+[project]
+name = "agent-browser"
+version = "0.2.0"
+description = "Python wrapper for agent-browser CLI - Browser automation for AI agents"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "ipdb>=0.13.13",
+    "ipykernel>=7.1.0",
+    "ipython>=9.9.0",
+    "marimo>=0.19.4",
+    "pdbsublimetextsupport>=0.2",
+    "pyinstrument>=5.1.2",
+    "pytest>=8.3.4",
+]
