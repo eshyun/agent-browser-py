@@ -1,5 +1,6 @@
 import pytest
 import sys
+import atexit
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
@@ -69,6 +70,54 @@ class TestContextManager:
         result = browser.__exit__(None, None, None)
         assert result is False
 
+    def test_context_manager_exit_calls_close_by_default(self):
+        browser = AgentBrowser()
+        called = {"v": False}
+
+        def fake_close():
+            called["v"] = True
+
+        browser.close = fake_close
+        browser.__exit__(None, None, None)
+        assert called["v"] is True
+
+    def test_context_manager_exit_does_not_call_close_when_auto_close_false(self):
+        browser = AgentBrowser(auto_close=False)
+        called = {"v": False}
+
+        def fake_close():
+            called["v"] = True
+
+        browser.close = fake_close
+        browser.__exit__(None, None, None)
+        assert called["v"] is False
+
+
+class TestCloseOnExit:
+    def test_close_on_exit_registers_atexit_hook(self, monkeypatch):
+        calls = {"n": 0}
+
+        def fake_register(fn):
+            calls["n"] += 1
+            return fn
+
+        monkeypatch.setattr(atexit, "register", fake_register)
+
+        AgentBrowser(close_on_exit=True)
+        assert calls["n"] == 1
+
+    def test_close_on_exit_false_does_not_register_atexit_hook(self, monkeypatch):
+        calls = {"n": 0}
+
+        def fake_register(fn):
+            calls["n"] += 1
+            return fn
+
+        monkeypatch.setattr(atexit, "register", fake_register)
+
+        AgentBrowser(close_on_exit=False)
+        assert calls["n"] == 0
+
 
 class TestAPISignatures:
     def test_navigation_methods_exist(self):
@@ -97,6 +146,7 @@ class TestAPISignatures:
         assert hasattr(browser, "get_value")
         assert hasattr(browser, "get_title")
         assert hasattr(browser, "get_url")
+        assert hasattr(browser, "get_page")
         assert hasattr(browser, "is_visible")
         assert hasattr(browser, "is_enabled")
 
@@ -261,6 +311,7 @@ class TestBatchExecution:
             assert hasattr(b, "click")
             assert hasattr(b, "fill")
             assert hasattr(b, "get_title")
+            assert hasattr(b, "get_page")
             assert hasattr(b, "screenshot")
 
     def test_batch_context_chaining(self):

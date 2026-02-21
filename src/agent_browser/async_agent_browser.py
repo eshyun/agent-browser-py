@@ -7,7 +7,9 @@ import json
 import asyncio
 import tempfile
 import os
-from typing import Optional, Dict, Any, List, Union
+import atexit
+import subprocess
+from typing import Optional, Dict, Any, List, Union, Literal
 from pathlib import Path
 
 from agent_browser import AgentBrowserError
@@ -94,6 +96,19 @@ class AsyncBatchContext:
         )
         return self
 
+    def get_page(self, mode: Literal["html", "text"]) -> "AsyncBatchContext":
+        if mode == "html":
+            javascript = "document.documentElement.outerHTML"
+        elif mode == "text":
+            javascript = "document.body.innerText"
+        else:
+            raise ValueError(f"Unsupported mode: {mode}")
+
+        self.commands.append(
+            {"method": "eval", "args": [javascript], "kwargs": {"json_output": True}}
+        )
+        return self
+
     def screenshot(self, path: Optional[str] = None) -> "AsyncBatchContext":
         """Queue screenshot command"""
         args = ["screenshot"]
@@ -150,6 +165,8 @@ class AsyncAgentBrowser:
         headed: bool = False,
         debug: bool = False,
         cdp_port: Optional[int] = None,
+        auto_close: bool = True,
+        close_on_exit: bool = False,
     ):
         """
         Initialize AsyncAgentBrowser controller
@@ -169,14 +186,36 @@ class AsyncAgentBrowser:
         self.debug = debug
         self.cdp_port = cdp_port
 
+        self.auto_close = auto_close
+        self.close_on_exit = close_on_exit
+        self._close_on_exit_registered = False
+
+        if self.close_on_exit:
+            self.register_close_on_exit()
+
     async def __aenter__(self):
         """Context manager entry"""
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Context manager exit with automatic cleanup"""
-        await self.close()
+        if self.auto_close:
+            await self.close()
         return False
+
+    def register_close_on_exit(self) -> None:
+        if self._close_on_exit_registered:
+            return
+
+        def cleanup():
+            try:
+                cmd = self._build_command("close")
+                subprocess.run(cmd, capture_output=True, text=True, check=False)
+            except Exception:
+                pass
+
+        atexit.register(cleanup)
+        self._close_on_exit_registered = True
 
     def _build_command(self, *args: str, json_output: bool = False) -> List[str]:
         """Build agent-browser command with common options"""
@@ -232,6 +271,10 @@ class AsyncAgentBrowser:
             if isinstance(e, AgentBrowserError):
                 raise
             raise AgentBrowserError(f"Command execution failed: {str(e)}")
+
+    async def eval(self, javascript: str) -> Any:
+        """Execute JavaScript and return result"""
+        return await self._run("eval", javascript, json_output=True)
 
     # Navigation
     async def open(self, url: str, headers: Optional[Dict[str, str]] = None) -> None:
@@ -378,6 +421,17 @@ class AsyncAgentBrowser:
     async def get_box(self, selector: str) -> Dict[str, float]:
         """Get bounding box of element (x, y, width, height)"""
         return await self._run("get", "box", selector, json_output=True)
+
+    async def get_page(self, mode: Literal["html", "text"]) -> str:
+        if mode == "html":
+            return await self.eval("document.documentElement.outerHTML")
+        if mode == "text":
+            return await self.eval("document.body.innerText")
+        raise ValueError(f"Unsupported mode: {mode}")
+
+    async def get_content(self) -> str:
+        """Get raw HTML content"""
+        return await self.get_page("html")
 
     async def is_visible(self, selector: str) -> bool:
         """Check if element is visible"""
@@ -792,6 +846,8 @@ class AsyncAgentBrowser:
 
             if method == "get":
                 cmd_parts = self._build_command("get", *args, json_output=json_flag)
+            elif method == "eval":
+                cmd_parts = self._build_command("eval", *args, json_output=json_flag)
             elif method == "snapshot":
                 interactive_only = kwargs.get("interactive_only", False)
                 compact = kwargs.get("compact", False)

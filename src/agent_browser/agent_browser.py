@@ -8,7 +8,7 @@ import subprocess
 import atexit
 import tempfile
 import os
-from typing import Optional, Dict, Any, List, Union
+from typing import Optional, Dict, Any, List, Union, Literal
 from pathlib import Path
 from benedict import BeneDict
 
@@ -100,6 +100,19 @@ class BatchContext:
         )
         return self
 
+    def get_page(self, mode: Literal["html", "text"]) -> "BatchContext":
+        if mode == "html":
+            javascript = "document.documentElement.outerHTML"
+        elif mode == "text":
+            javascript = "document.body.innerText"
+        else:
+            raise ValueError(f"Unsupported mode: {mode}")
+
+        self.commands.append(
+            {"method": "eval", "args": [javascript], "kwargs": {"json_output": True}}
+        )
+        return self
+
     def screenshot(self, path: Optional[str] = None) -> "BatchContext":
         """Queue screenshot command"""
         args = ["screenshot"]
@@ -151,6 +164,8 @@ class AgentBrowser:
         headed: bool = False,
         debug: bool = False,
         cdp_port: Optional[int] = None,
+        auto_close: bool = True,
+        close_on_exit: bool = False,
     ):
         """
         Initialize AgentBrowser controller
@@ -169,6 +184,26 @@ class AgentBrowser:
         self.headed = headed
         self.debug = debug
         self.cdp_port = cdp_port
+
+        self.auto_close = auto_close
+        self.close_on_exit = close_on_exit
+        self._close_on_exit_registered = False
+
+        if self.close_on_exit:
+            self.register_close_on_exit()
+
+    def register_close_on_exit(self) -> None:
+        if self._close_on_exit_registered:
+            return
+
+        def cleanup():
+            try:
+                self.close()
+            except Exception:
+                pass
+
+        atexit.register(cleanup)
+        self._close_on_exit_registered = True
 
     def _build_command(self, *args: str, json_output: bool = False) -> List[str]:
         """Build agent-browser command with common options"""
@@ -378,9 +413,16 @@ class AgentBrowser:
             return result["box"]
         return result
 
+    def get_page(self, mode: Literal["html", "text"]) -> str:
+        if mode == "html":
+            return self.eval("document.documentElement.outerHTML")
+        if mode == "text":
+            return self.eval("document.body.innerText")
+        raise ValueError(f"Unsupported mode: {mode}")
+
     def get_content(self):
         """Get raw HTML content"""
-        return self.eval("document.documentElement.outerHTML")
+        return self.get_page("html")
 
     # State checks
     def is_visible(self, selector: str) -> bool:
@@ -790,6 +832,8 @@ class AgentBrowser:
 
             if method == "get":
                 cmd_parts = self._build_command("get", *args, json_output=json_output)
+            elif method == "eval":
+                cmd_parts = self._build_command("eval", *args, json_output=json_output)
             elif method == "snapshot":
                 interactive_only = kwargs.get("interactive_only", False)
                 compact = kwargs.get("compact", False)
@@ -842,7 +886,9 @@ class AgentBrowser:
             if line.startswith("{") and line.endswith("}"):
                 try:
                     data = json.loads(line)
-                    if isinstance(data, dict) and data.get("success"):
+                    if isinstance(data, dict) and "success" in data:
+                        if not data.get("success"):
+                            raise AgentBrowserError(data.get("error", "Command failed"))
                         json_results.append(data.get("data"))
                 except json.JSONDecodeError:
                     pass
@@ -945,8 +991,9 @@ class AgentBrowser:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Context manager exit - close browser"""
-        try:
-            self.close()
-        except:
-            pass  # Ignore errors on cleanup
+        if self.auto_close:
+            try:
+                self.close()
+            except Exception:
+                pass
         return False

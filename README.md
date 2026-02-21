@@ -89,6 +89,18 @@ with AgentBrowser() as browser:
     print(f"Title: {title}")
 ```
 
+#### Disabling Auto-Close on Context Exit
+
+If you want to keep the session alive after the context ends (e.g., another component shares the same session), disable `auto_close`:
+
+```python
+with AgentBrowser(session="shared", auto_close=False) as browser:
+    browser.open("https://example.com")
+
+# Session is still alive here
+# You are responsible for calling close() or using shutdown/hook mechanisms
+```
+
 ### Multiple Sessions
 
 ```python
@@ -120,6 +132,8 @@ with browser.batch() as b:
     b.get_title()
     b.get_url()
     b.get_text("h1")
+    b.get_page("html")
+    b.get_page("text")
     b.screenshot("page.png")
 
 # Results available after context exit
@@ -154,12 +168,30 @@ async def main():
         
         title = await browser.get_title()
         print(f"Title: {title}")
+
+        page_html = await browser.get_page("html")
+        page_text = await browser.get_page("text")
+        # get_content() is equivalent to get_page("html")
+        page_html2 = await browser.get_content()
         
         snapshot = await browser.snapshot(interactive_only=True)
         print(f"Found {len(snapshot.get('refs', {}))} interactive elements")
 
 asyncio.run(main())
 ```
+
+#### Process Exit Cleanup (Per-Instance)
+
+If you want a specific session to be closed when the Python process exits, enable `close_on_exit` on that instance:
+
+```python
+browser = AgentBrowser(session="shared", auto_close=False, close_on_exit=True)
+browser.open("https://example.com")
+
+# This instance's session will attempt to close on interpreter exit
+```
+
+`close_on_exit=True` only targets the current instance's session (not a global shutdown).
 
 #### Async Batch Execution
 

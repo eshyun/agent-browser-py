@@ -32,11 +32,24 @@ with AgentBrowser() as browser:
 - Pythonic resource management
 - Exception-safe
 
+Context manager cleanup can be controlled via `auto_close`.
+
+For process-level cleanup, instances can opt-in to registering a per-instance atexit hook via `close_on_exit`.
+
 #### 4. Method Naming
 Python conventions instead of CLI conventions:
 - `get_text()` instead of `get text`
 - `scroll_into_view()` instead of `scrollintoview`
 - `is_visible()` instead of `is visible`
+
+#### 5. Page-level Content Retrieval
+Page 전체 HTML/Text는 `agent-browser`의 `eval` 서브커맨드로 구현한다.
+- `get_page("html")` => `eval("document.documentElement.outerHTML")`
+- `get_page("text")` => `eval("document.body.innerText")`
+
+기존 `get_content()`는 하위 호환을 위해 유지하며, 내부적으로 `get_page("html")`로 위임한다.
+
+Batch 모드에서도 동일한 방식으로 `eval` 명령을 큐잉하여 페이지 HTML/Text를 가져온다.
 
 ### Class Structure
 
@@ -48,6 +61,7 @@ AgentBrowser
 ├── Navigation methods   # open, back, forward, reload
 ├── Action methods       # click, fill, type, hover, etc.
 ├── Info methods         # get_text, get_html, is_visible, etc.
+├── Page methods         # get_page, get_content
 ├── Snapshot methods     # snapshot with filtering options
 ├── Media methods        # screenshot, pdf
 ├── Wait methods         # wait with various conditions

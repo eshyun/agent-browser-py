@@ -5,6 +5,7 @@ Tests for AsyncAgentBrowser
 import pytest
 import asyncio
 import sys
+import atexit
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
@@ -22,6 +23,8 @@ class TestAsyncAgentBrowserInit:
         assert browser.headed is False
         assert browser.debug is False
         assert browser.cdp_port is None
+        assert browser.auto_close is True
+        assert browser.close_on_exit is False
 
     def test_init_with_session(self):
         browser = AsyncAgentBrowser(session="test-session")
@@ -121,6 +124,9 @@ class TestAsyncAPISignatures:
         assert hasattr(browser, "get_attr")
         assert hasattr(browser, "get_title")
         assert hasattr(browser, "get_url")
+        assert hasattr(browser, "get_page")
+        assert hasattr(browser, "get_content")
+        assert hasattr(browser, "eval")
 
         assert asyncio.iscoroutinefunction(browser.get_text)
         assert asyncio.iscoroutinefunction(browser.get_title)
@@ -231,6 +237,7 @@ class TestAsyncBatchContext:
         assert batch.get_title() is batch
         assert batch.get_url() is batch
         assert batch.get_text("h1") is batch
+        assert batch.get_page("html") is batch
         assert batch.screenshot("test.png") is batch
         assert batch.snapshot() is batch
 
@@ -241,6 +248,56 @@ class TestAsyncContextManager:
         browser = AsyncAgentBrowser()
         assert hasattr(browser, "__aenter__")
         assert hasattr(browser, "__aexit__")
+
+    @pytest.mark.asyncio
+    async def test_aexit_calls_close_by_default(self):
+        browser = AsyncAgentBrowser()
+        called = {"v": False}
+
+        async def fake_close():
+            called["v"] = True
+
+        browser.close = fake_close
+        await browser.__aexit__(None, None, None)
+        assert called["v"] is True
+
+    @pytest.mark.asyncio
+    async def test_aexit_does_not_call_close_when_auto_close_false(self):
+        browser = AsyncAgentBrowser(auto_close=False)
+        called = {"v": False}
+
+        async def fake_close():
+            called["v"] = True
+
+        browser.close = fake_close
+        await browser.__aexit__(None, None, None)
+        assert called["v"] is False
+
+
+class TestAsyncCloseOnExit:
+    def test_close_on_exit_registers_atexit_hook(self, monkeypatch):
+        calls = {"n": 0}
+
+        def fake_register(fn):
+            calls["n"] += 1
+            return fn
+
+        monkeypatch.setattr(atexit, "register", fake_register)
+
+        AsyncAgentBrowser(close_on_exit=True)
+        assert calls["n"] == 1
+
+    def test_close_on_exit_false_does_not_register_atexit_hook(self, monkeypatch):
+        calls = {"n": 0}
+
+        def fake_register(fn):
+            calls["n"] += 1
+            return fn
+
+        monkeypatch.setattr(atexit, "register", fake_register)
+
+        AsyncAgentBrowser(close_on_exit=False)
+        assert calls["n"] == 0
 
 
 class TestAsyncBatchExecution:

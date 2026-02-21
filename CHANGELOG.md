@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- Page-level retrieval API
+  - `AgentBrowser.get_page("html"|"text")`
+  - `AsyncAgentBrowser.get_page("html"|"text")`
+  - `BatchContext.get_page("html"|"text")`
+  - `AsyncBatchContext.get_page("html"|"text")`
+- `AsyncAgentBrowser.get_content()` parity with sync API (equivalent to `get_page("html")`)
+- `AsyncAgentBrowser.eval()` helper for executing JavaScript via `agent-browser eval`
+- Lifecycle options
+  - `auto_close` (controls whether context manager exit triggers `close()`)
+  - `close_on_exit` (registers a per-instance atexit hook to close that session on process exit)
+
+### Changed
+- `AgentBrowser.get_content()` now delegates to `get_page("html")` (behavior unchanged)
+- Batch execution now supports `eval` commands with JSON parsing
+
 ## [0.3.0] - 2026-01-21
 
 ### Added
